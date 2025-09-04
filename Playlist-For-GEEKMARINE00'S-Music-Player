@@ -125,7 +125,7 @@ function songPicker()
     while true do
         print([[
     1. Finale
-    2. Otherside
+    2. Seasons
     3. Mortal Kombat
     4. Look At The Sky
     5. Unravel: Tokyo Ghoul OP
