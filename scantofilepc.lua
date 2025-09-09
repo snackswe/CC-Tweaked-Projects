@@ -27,7 +27,9 @@ function face(desired) -- relative cardinal direction function
 end
 
 function go(axis, distance)
-	local bumpThrow = "Scan incomplete.\nEnsure there is at least a 1 block perimiter of air around scanned area"
+	if distance == 0 then return end -- if asked to move no distance for whatever reason, then don't run all that code
+
+	local bumpThrow = "Scan incomplete.\nEnsure there is at least a 1 block perimiter of air around scanned area..."
 	local axisPol = 1
 	if distance < 0 then axisPol = -1 end 
 	-- check if request wants to move negative blocks on the given axis, then adjust the negativity variable
@@ -48,7 +50,7 @@ function go(axis, distance)
 		end
 	elseif axisPol == -1 then -- use this loop for moving negative on the y axis
 		for i = 1, math.abs(tonumber(distance)) do
-			local bump, junk = turtle.inspect()
+			local bump, junk = turtle.inspectDown()
 			if bump then
 				print(bumpThrow)
 				break
@@ -99,7 +101,6 @@ term.setCursorPos(1,1)
 print("1. Place turtle adjacent to the corner of the first slice \n2. Input dimentions x, y, z, of area relative to turtle placement (x = blocks forward, y = slices total, z = blocks right): ")
 local input = read()
 local one, two, three = input:match("([^,]+),([^,]+),([^,]+)")
-local model = fs.open("models/model.data", "w")
 local xDir = 1
 local zDir = 1
 local even
@@ -117,29 +118,38 @@ for x = 1, one do
 end
 
 for i = 1, layers do
-	go("z", zDir)
-	go("x", xDir)
 	local layer = i
+	local slice = i + (i - 1)
 	for i = 1, three do	
 		for i = 1, one do
 			local junk, bB = turtle.inspectDown()
-			bP[pos.x][layer][pos.z] = {info = bB, coords = tostring(pos.x) .. "," .. tostring(layer) .. "," .. tostring(pos.z)}
+			bP[pos.x + 1][slice][pos.z + 1] = {info = bB, coords = tostring(pos.x + 1) .. "," .. tostring(slice) .. "," .. tostring(pos.z + 1)}
 			if layer < layers or even then
 				local junk, tB = turtle.inspectUp()
-				bP[pos.x][layer + 1][pos.z] = {info = tB, coords = tostring(pos.x) .. "," .. tostring(layer + 1) .. "," .. tostring(pos.z)}
+				bP[pos.x + 1][slice +  1][pos.z + 1] = {info = tB, coords = tostring(pos.x + 1) .. "," .. tostring(slice + 1) .. "," .. tostring(pos.z + 1)}
 			end
-			go("x", xDir)
+			if i < tonumber(one) then
+				go("x", xDir)
+			end
 		end	
 		xDir = xDir * -1
-		go("z", zDir)
-		go("x", xDir)
+		if i < tonumber(three) then
+			go("z", zDir)
+		end
 	end	
-	if layers > 1 and layer < layers then goTo({x = pos.x - xDir, y = pos.y + 3,z = pos.z})end
+	if layers > 1 and layer < layers then 
+		go("x", (xDir * -1))
+		go("y", 3)
+		go("x", xDir)
+	end		
 	zDir = zDir * -1
+end	
+if layers > 1 then
+	go("x", (xDir * -1))
+	go("y", 0 - pos.y)
 end
 goTo(origin)
 face(0)
-for i, tab in pairs(bP) do
-  model.write(textutils.serialise(tab))
-end
+local model = fs.open("models/model.data", "w")
+model.write(textutils.serialise(bP, { compact = true }))
 model.close()
