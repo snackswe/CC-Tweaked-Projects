@@ -117,16 +117,17 @@ for x = 1, one do
   end
 end
 
+
 for i = 1, layers do
 	local layer = i
 	local slice = i + (i - 1)
 	for i = 1, three do	
 		for i = 1, one do
 			local junk, bB = turtle.inspectDown()
-			bP[pos.x + 1][slice][pos.z + 1] = {info = bB, coords = tostring(pos.x + 1) .. "," .. tostring(slice) .. "," .. tostring(pos.z + 1)}
+			bP[pos.x + 1][slice][pos.z + 1] = {info = bB, pos = tostring(pos.x + 1) .. "," .. tostring(slice) .. "," .. tostring(pos.z + 1)}
 			if layer < layers or even then
 				local junk, tB = turtle.inspectUp()
-				bP[pos.x + 1][slice +  1][pos.z + 1] = {info = tB, coords = tostring(pos.x + 1) .. "," .. tostring(slice + 1) .. "," .. tostring(pos.z + 1)}
+				bP[pos.x + 1][slice +  1][pos.z + 1] = {info = tB, pos = tostring(pos.x + 1) .. "," .. tostring(slice + 1) .. "," .. tostring(pos.z + 1)}
 			end
 			if i < tonumber(one) then
 				go("x", xDir)
@@ -150,6 +151,7 @@ if layers > 1 then
 end
 goTo(origin)
 face(0)
+table.insert(bP, {dimentions = {x = one, y = two, z = three}})
 local model = fs.open("models/model.data", "w")
 model.write(textutils.serialise(bP, { compact = true }))
 model.close()
