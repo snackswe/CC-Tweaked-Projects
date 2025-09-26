@@ -119,10 +119,10 @@ for s = 1, SANDWICHES_TOTAL do
 				move_along_axis("z", z_increment_direction)
 			end
 		end	
-		x_increment_direction = x_increment_direction * -1
-		if i < tonumber(POSITIVE_X_LENGTH_TOTAL) then
+		if x < tonumber(POSITIVE_X_LENGTH_TOTAL) then
 			move_along_axis("x", x_increment_direction)
 		end
+		x_increment_direction = x_increment_direction * -1
 	end	
 	if SANDWICHES_TOTAL > 1 and currently_filling_sandwich < SANDWICHES_TOTAL then 
 		move_along_axis("z", (z_increment_direction * -1))
