@@ -3,36 +3,41 @@ sensitive_test_file = fs.open(arg1, "r")
 loaded_blueprint = textutils.unserialise(sensitive_test_file.readAll())
 sensitive_test_file.close()
 local position_sensitive_blocks = {}
-total_sensitive_found = 1
+total_sensitive_found = 0
+
+local update_sensitive_list_from_table(supplied)
+    if supplied.info.state and supplied.info.state.facing then                    
+        if not position_sensitive_blocks[total_sensitive_found + 1] or position_sensitive_blocks[total_sensitive_found + 1].pos ~= supplied.coords then
+            table.insert(position_sensitive_blocks, total_sensitive_found, {name = supplied.info.name, facing = supplied.info.state.facing, pos = supplied.coords})
+        elseif position_sensitive_blocks[total_sensitive_found + 1].pos == supplied.coords then
+            table.insert(position_sensitive_blocks, total_sensitive_found, {facing = supplied.info.state.facing})
+        end
+    end
+
+    if supplied.info.state and supplied.info.state.half then
+        if not position_sensitive_blocks[total_sensitive_found + 1] or position_sensitive_blocks[total_sensitive_found + 1].pos ~= supplied.coords then
+            table.insert(position_sensitive_blocks, total_sensitive_found, {name = supplied.info.name, half = supplied.info.state.half, pos = supplied.coords})
+        elseif position_sensitive_blocks[total_sensitive_found + 1].pos == supplied.coords then
+            position_sensitive_blocks[total_sensitive_found + 1] = {name = supplied.info.name, half = supplied.info.state.half, facing = info.state.facing, pos = supplied.coords}
+        end
+    end
+    if supplied.info.state and supplied.info.state.axis then
+        if not position_sensitive_blocks[total_sensitive_found + 1] or position_sensitive_blocks[total_sensitive_found + 1].pos ~= supplied.coords then
+           table.insert(position_sensitive_blocks, total_sensitive_found, {name = supplied.info.name, axis = supplied.info.state.axis, pos = supplied.coords})
+        elseif position_sensitive_blocks[total_sensitive_found + 1].pos == supplied.coords then
+            position_sensitive_blocks[total_sensitive_found + 1] = {name = supplied.info.name, axis = supplied.info.state.axis, half = info.state.half, pos = supplied.coords}
+        end
+    end
+    if supplied.info.state and (supplied.info.state.axis or supplied.info.state.half or supplied.info.state.facing) then
+        total_sensitive_found = total_sensitive_found + 1
+    end
+end
 
 for x=1,#loaded_blueprint do
     for y=1,#loaded_blueprint[x] do
         for z=1,#loaded_blueprint[x][y] do
-            local cell = loaded_blueprint[x][y][z]
-            if cell.info.state and cell.info.state.facing then                    
-                if not position_sensitive_blocks[total_sensitive_found] or position_sensitive_blocks[total_sensitive_found].pos ~= cell.coords then
-                    table.insert(position_sensitive_blocks, total_sensitive_found, {name = cell.info.name, facing = cell.info.state.facing, pos = cell.coords})
-                elseif position_sensitive_blocks[total_sensitive_found].pos == cell.coords then
-                    table.insert(position_sensitive_blocks, total_sensitive_found, {facing = cell.info.state.facing})
-                end
-            end
-            if cell.info.state and cell.info.state.half then
-                if not position_sensitive_blocks[total_sensitive_found] or position_sensitive_blocks[total_sensitive_found].pos ~= cell.coords then
-                    table.insert(position_sensitive_blocks, total_sensitive_found, {name = cell.info.name, half = cell.info.state.half, pos = cell.coords})
-                elseif position_sensitive_blocks[total_sensitive_found].pos == cell.coords then
-                    position_sensitive_blocks[total_sensitive_found] = {name = cell.info.name, half = cell.info.state.half, facing = info.state.facing, pos = cell.coords}
-                end
-            end
-            if cell.info.state and cell.info.state.axis then
-                if not position_sensitive_blocks[total_sensitive_found] or position_sensitive_blocks[total_sensitive_found].pos ~= cell.coords then
-                    table.insert(position_sensitive_blocks, total_sensitive_found, {name = cell.info.name, axis = cell.info.state.axis, pos = cell.coords})
-                elseif position_sensitive_blocks[total_sensitive_found].pos == cell.coords then
-                    position_sensitive_blocks[total_sensitive_found] = {name = cell.info.name, axis = cell.info.state.axis, half = info.state.half, pos = cell.coords}
-                end
-            end
-            if cell.info.state and (cell.info.state.axis or cell.info.state.half or cell.info.state.facing) then
-                total_sensitive_found = total_sensitive_found + 1
-            end
+            local loaded_cell = loaded_blueprint[x][y][z]
+            update_sensitive_list_from_table(loaded_cell)
         end
     end
 end
@@ -40,11 +45,3 @@ end
 local sensitive_test_file = fs.open("sensitive.data", "w")
 sensitive_test_file.write(textutils.serialise(position_sensitive_blocks, { compact = true }))
 sensitive_test_file.close()
---[[
-for x=1,#loaded_blueprint do
-  for y=1,#loaded_blueprint[x] do
-    for z=1,#loaded_blueprint[x][y] do
-    end
-  end
-end
-]]--
